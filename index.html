@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    
+    <script src="https://ayetinvakti.github.io/finish.js?v=4"></script>
+    <script src="https://ayetinvakti.github.io/menu.js" defer></script>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b1120">
+
+    <script>
+        // Tema, özel renk paleti ve dil (sayfa yüklenmeden önce çalışır, titremeyi önler)
+        (function () {
+            const d = document.documentElement;
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const isLight = savedTheme === 'light' || (!savedTheme && !systemPrefersDark);
+            if (isLight) d.classList.add('light-mode');
+            const a = localStorage.getItem('custom_accent');
+            const t = localStorage.getItem('custom_text');
+            const b = localStorage.getItem('custom_bg');
+            if (a) d.style.setProperty('--accent-color', a);
+            if (t) d.style.setProperty('--text-color', t);
+            if (b) {
+                d.style.setProperty('--bg-color', b);
+                d.style.setProperty('--card-bg', b);
+            }
+            // Özel arka plan var, yazı rengi seçilmemişse okunabilir renkleri zeminin açıklığına göre seç
+            if (b && !t) {
+                const m = /^#([0-9a-f]{6})$/i.exec(b.trim());
+                if (m) {
+                    const n = parseInt(m[1], 16);
+                    const lin = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+                    const L = 0.2126 * lin(n >> 16) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255);
+                    const bgIsLight = L > 0.18;
+                    d.style.setProperty('--text-color', bgIsLight ? '#0f172a' : '#f8fafc');
+                    d.style.setProperty('--text-muted', bgIsLight ? '#475569' : '#cbd5e1');
+                    d.style.setProperty('--border-color', bgIsLight ? 'rgba(15,23,42,0.18)' : 'rgba(248,250,252,0.22)');
+                    // Arapça / okunuş / meal renkleri de zemine göre okunabilir olsun (yazı rengi seçilmemişse)
+                    d.style.setProperty('--arabic-text-color', bgIsLight ? '#0f172a' : '#f8fafc');
+                    d.style.setProperty('--translation-color', bgIsLight ? '#334155' : '#e2e8f0');
+                    d.style.setProperty('--transliteration-color', bgIsLight ? '#0369a1' : '#7dd3fc');
+                }
+            }
+            // Safari üst/alt çubuğu sayfa zemin rengine uysun
+            const meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.setAttribute('content', b || (isLight ? '#f8fafc' : '#0b1120'));
+
+            // Dil ve yön
+            const lang = localStorage.getItem('user_lang') || 'tr';
+            d.setAttribute('lang', lang);
+            d.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+        })();
+    </script>
+<title>Amel Defteri | Ayetin Vakti</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+        :root {
+            --bg-color: #0b1120;
+            --card-bg: #1e293b;
+            --accent-color: #10b981;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --arabic-text-color: #f1f5f9;
+            --transliteration-color: #38bdf8;
+            --translation-color: #cbd5e1;
+            --btn-bg: rgba(255, 255, 255, 0.05);
+            --btn-hover: rgba(255, 255, 255, 0.1);
+            color-scheme: dark;
+        }
+
+        html.light-mode {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --accent-color: #059669;
+            --text-color: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --arabic-text-color: #0f172a;
+            --transliteration-color: #0284c7;
+            --translation-color: #334155;
+            --btn-bg: #f1f5f9;
+            --btn-hover: #e2e8f0;
+            color-scheme: light;
+        }
+
+        /* Tuşlara ard arda basınca sayfa yakınlaşmasın */
+        html, body, button, a, select, input, label, [onclick] { touch-action: manipulation; }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .navbar {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            position: relative;
+        }
+
+        .home-btn {
+            background-color: var(--btn-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        @media (hover: hover) {
+            .home-btn:hover {
+                background-color: var(--btn-hover);
+            }
+        }
+
+        .app-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-color);
+    text-align: center;
+    flex: 1;
+}
+
+.nav-group { display: flex; align-items: center; gap: 8px; }
+.nav-group > * { flex: none; }
+/* Başlık görsel olarak gizli (ekran okuyucu ve SEO için h1 kalır) */
+.page-head { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.page-head .app-title { flex: none; padding: 0 8px; font-size: clamp(1.05rem, 5vw, 1.25rem); color: var(--accent-color); }
+
+        .theme-icon-btn {
+            background-color: var(--btn-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (hover: hover) {
+            .theme-icon-btn:hover {
+                background-color: var(--btn-hover);
+            }
+        }
+
+.sec{background:var(--card-bg);border:1px solid var(--border-color);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.sec h2{font-size:.98rem;color:var(--accent-color);display:flex;justify-content:space-between;align-items:center}
+.sec h2 small{color:var(--text-muted);font-weight:600;font-size:.8rem}
+.bar{height:10px;border-radius:6px;background:var(--bg-color);border:1px solid var(--border-color);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent-color);transition:width .4s}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.muted{color:var(--text-muted);font-size:.82rem;line-height:1.5}
+.tb{background:var(--btn-bg);border:1px solid var(--border-color);color:var(--text-color);border-radius:10px;padding:7px 12px;font-size:.82rem;font-weight:600;cursor:pointer}
+.tb:disabled{opacity:.4}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;direction:ltr}
+.wd{border:1px solid var(--border-color);border-radius:10px;padding:6px 2px;text-align:center;font-size:.7rem;color:var(--text-muted);cursor:pointer;background:var(--btn-bg)}
+.wd b{display:block;font-size:.95rem;color:var(--text-color)}
+.wd.sel{border-color:var(--accent-color);outline:1px solid var(--accent-color)}
+.wd.has b{color:var(--accent-color)}
+.it{display:flex;align-items:center;gap:10px;width:100%;text-align:start;background:var(--btn-bg);border:1px solid var(--border-color);color:var(--text-color);border-radius:12px;padding:10px 12px;font-size:.9rem;cursor:pointer}
+.it .ck{width:22px;height:22px;border-radius:50%;border:2px solid var(--border-color);flex:none;display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--bg-color)}
+.it.on{border-color:var(--accent-color)}
+.it.on .ck{background:var(--accent-color);border-color:var(--accent-color)}
+.it span.n{flex:1}
+.del{background:none;border:0;color:var(--text-muted);font-size:1rem;padding:0 4px;cursor:pointer}
+.add{display:flex;gap:8px;flex-wrap:wrap}
+.add input,.add select{flex:1;min-width:120px;background:var(--bg-color);color:var(--text-color);border:1px solid var(--border-color);border-radius:10px;padding:9px;font-size:.88rem;font-family:inherit;user-select:text;-webkit-user-select:text}
+.ay{font-family:'Amiri',serif;font-size:1.45rem;line-height:2;text-align:center;color:var(--arabic-text-color)}
+.tr2{color:var(--translation-color);font-size:.9rem;line-height:1.6}
+
+
+.ts{width:100%;height:auto;max-height:440px;display:block;border-radius:14px}
+.tg{transform-origin:150px 300px;transition:transform 1.6s cubic-bezier(.2,.9,.25,1)}
+.sw{transform-origin:150px 300px;animation:sw 5s ease-in-out infinite}
+@keyframes sw{0%,100%{transform:rotate(-1.1deg)}50%{transform:rotate(1.1deg)}}
+.pf{animation:fl 6s ease-in-out infinite}
+@keyframes fl{0%,100%{transform:translate(0,0);opacity:.15}50%{transform:translate(8px,-18px);opacity:.95}}
+.dr,.ray{animation:gl 2.8s ease-in-out infinite}
+@keyframes gl{0%,100%{opacity:.5}50%{opacity:1}}
+.rd{opacity:0}
+.rain .rd{animation:fall 1.1s ease-in forwards}
+@keyframes fall{0%{opacity:0;transform:translateY(-200px)}15%{opacity:1}100%{opacity:0;transform:translateY(0)}}
+@keyframes bu{from{opacity:1;transform:translate(0,0) scale(1)}to{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.4)}}
+.chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.ch{font-size:.72rem;padding:4px 9px;border-radius:20px;border:1px solid var(--border-color);color:var(--text-muted)}
+.ch.on{border-color:var(--accent-color);color:var(--accent-color);font-weight:700}
+.gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.gm{text-align:center;font-size:.72rem;color:var(--text-muted);line-height:1.4}
+.gm svg{width:100%;height:auto;border-radius:10px}
+@media (prefers-reduced-motion:reduce){.sw,.pf,.dr,.ray{animation:none}.tg{transition:none}}
+</style>
+</head>
+<body>
+<div class="container">
+<header class="navbar fin-card">
+<div class="nav-group">
+<a href="https://ayetinvakti.github.io/" class="home-btn fin-btn" title="Ana Sayfa" aria-label="Ana Sayfa">←</a>
+<button class="theme-icon-btn fin-btn" data-drawer-toggle aria-label="Menü" aria-controls="avmDrawer" title="Menü">☰</button>
+</div>
+<button class="theme-icon-btn fin-btn" onclick="toggleTheme()" id="theme-btn" title="Tema Değiştir" aria-label="Tema Değiştir">🌙</button>
+</header>
+<div class="page-head"><h1 class="app-title" id="h1">Amel Defteri</h1></div>
+
+<div class="sec fin-card">
+<div class="row"><h2 id="dateTitle"></h2><span id="pct" style="font-weight:700;color:var(--accent-color)">%0</span></div>
+<div class="bar"><i id="barFill"></i></div>
+<div class="row"><span class="muted" id="streak"></span>
+<span><button class="tb fin-btn" onclick="shiftDay(-1)" id="prevB">‹</button> <button class="tb fin-btn" onclick="goToday()" id="todayB"></button> <button class="tb fin-btn" onclick="shiftDay(1)" id="nextB">›</button></span></div>
+<div class="week" id="week"></div>
+</div>
+
+<div class="sec fin-card" id="treeBox">
+<h2><span id="trTitle"></span><small id="trPct"></small></h2>
+<div id="treeSvg"></div>
+<div class="chips" id="trChips"></div>
+<div class="muted" id="trInfo" style="text-align:center"></div>
+<div id="trAyBox" style="display:none"><div class="ay" id="trAr" style="font-size:1.25rem"></div><div class="tr2" id="trTr"></div><div class="muted" id="trRef"></div></div>
+</div>
+<div id="cats" style="display:flex;flex-direction:column;gap:16px"></div>
+<div class="sec fin-card"><h2 id="gTitle"></h2><div class="gg" id="garden"></div><div class="muted" id="gEmpty"></div></div>
+
+<div class="sec fin-card">
+<h2 id="addTitle"></h2>
+<div class="add"><select id="addCat"></select><input id="addTxt" maxlength="60"><button class="tb fin-btn" onclick="addCustom()" id="addB"></button></div>
+</div>
+
+<div class="sec fin-card" id="ayBox" style="display:none">
+<h2 id="ayTitle"></h2>
+<div class="ay" id="ayAr"></div>
+<div class="tr2" id="ayTr"></div>
+<div class="muted" id="ayRef"></div>
+</div>
+
+<p class="muted" id="note" style="text-align:center;padding:0 6px 20px"></p>
+</div>
+
+<script>
+const TXT={
+tr:{title:"Amel Defteri | Ayetin Vakti",h1:"Amel Defteri",today:"Bugün",day:"Gün",streak:"Seri: {n} gün",done:"{a} / {b}",
+add:"➕ Kendi amelini ekle",addPh:"Örn: Hasta ziyareti",addB:"Ekle",delc:"Bu amel silinsin mi?",
+ayT:"📖 Günün hatırlatması (ayet)",src:"Kaynak: alquran.cloud • Meal: Elmalılı Hamdi Yazır",
+note:"Bu defter yalnızca kendi takibin içindir; amellere puan vermez, hüküm bildirmez. Namazlar için 5-5 Namaz sayfasına bak.",
+cats:{quran:"📖 Kur'an",dua:"🤲 Dua ve Zikir",sadaka:"💝 Sadaka ve Hayır",ahlak:"🌿 Güzel Ahlak",irade:"🧭 İrade ve Nefis Terbiyesi"},
+wk:["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"]},
+en:{title:"Deeds Journal | Ayetin Vakti",h1:"Deeds Journal",today:"Today",day:"Day",streak:"Streak: {n} days",done:"{a} / {b}",
+add:"➕ Add your own deed",addPh:"e.g. Visit the sick",addB:"Add",delc:"Delete this deed?",
+ayT:"📖 Reminder of the day (ayah)",src:"Source: alquran.cloud • Translation: Sahih International",
+note:"This journal is only for your own tracking; it gives no points and issues no rulings. For prayers, see the 5-5 Prayer page.",
+cats:{quran:"📖 Quran",dua:"🤲 Dua & Dhikr",sadaka:"💝 Charity & Good Deeds",ahlak:"🌿 Good Character",irade:"🧭 Willpower & Self-discipline"},
+wk:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]},
+ar:{title:"دفتر الأعمال | آية الوقت",h1:"دفتر الأعمال",today:"اليوم",day:"يوم",streak:"المتتالية: {n} يومًا",done:"{a} / {b}",
+add:"➕ أضف عملك",addPh:"مثال: زيارة مريض",addB:"إضافة",delc:"هل تحذف هذا العمل؟",
+ayT:"📖 تذكير اليوم (آية)",src:"المصدر: alquran.cloud • التفسير: الميسر",
+note:"هذا الدفتر لمتابعتك الشخصية فقط؛ لا يمنح نقاطًا ولا يصدر أحكامًا. للصلوات انظر صفحة 5-5 للصلاة.",
+cats:{quran:"📖 القرآن",dua:"🤲 الدعاء والذكر",sadaka:"💝 الصدقة والخير",ahlak:"🌿 حسن الخلق",irade:"🧭 الإرادة وتزكية النفس"},
+wk:["اثن","ثلا","أرب","خمي","جمع","سبت","أحد"]}};
+const LG=TXT[localStorage.getItem('user_lang')]?localStorage.getItem('user_lang'):'tr', t=TXT[LG];
+// [id, kategori, tr, en, ar]
+const ITEMS=[
+["q1","quran","Kur'an okudum","I read the Quran","قرأت القرآن"],
+["q2","quran","Kur'an dinledim","I listened to the Quran","استمعت إلى القرآن"],
+["q3","quran","Ayet veya sure ezberledim / tekrar ettim","I memorized or reviewed a verse or surah","حفظت أو راجعت آية أو سورة"],
+["d1","dua","Dua ettim","I made dua","دعوت الله"],
+["d2","dua","Zikir çektim","I did dhikr","ذكرت الله"],
+["d3","dua","İstiğfar ettim","I sought forgiveness (istighfar)","استغفرت الله"],
+["d4","dua","Salavat getirdim","I sent salawat upon the Prophet ﷺ","صليت على النبي ﷺ"],
+["s1","sadaka","Sadaka verdim","I gave charity","تصدقت"],
+["s2","sadaka","İhtiyaç sahibine yardım ettim","I helped someone in need","ساعدت محتاجًا"],
+["s3","sadaka","Bir iyilik yaptım","I did a good deed","فعلت خيرًا"],
+["a1","ahlak","Anne-babamın hâlini sordum","I checked on my parents","سألت عن حال والديّ"],
+["a2","ahlak","Akraba, komşu veya dostumun hâlini sordum","I checked on a relative, neighbor or friend","سألت عن قريب أو جار أو صديق"],
+["a3","ahlak","Gıybet ve kötü sözden uzak durdum","I avoided backbiting and bad speech","ابتعدت عن الغيبة وسوء القول"],
+["a4","ahlak","Öfkeme hâkim oldum / bir kırgınlığı affettim","I controlled my anger / forgave a hurt","كظمت غيظي / عفوت عن إساءة"],
+["i1","irade","Nafile oruç tuttum","I fasted a voluntary fast","صمت صيام نافلة"],
+["i2","irade","Bir kötü alışkanlığa “hayır” dedim","I said no to a bad habit","قلت لا لعادة سيئة"],
+["i3","irade","Günümü gözden geçirdim (muhasebe)","I reflected on my day (self-review)","حاسبت نفسي على يومي"]];
+const CATS=["quran","dua","sadaka","ahlak","irade"];
+// Günün ayeti: yalnızca sure:ayet numarası saklanır; metin ve meal alquran.cloud'dan canlı çekilir
+const AYAH=["73:4","40:60","2:261","3:134","79:40"];
+const NAME=(it)=>it[LG==='en'?3:LG==='ar'?4:2];
+
+let S={days:{},cust:[]};
+try{const o=JSON.parse(localStorage.getItem('amel_v1')||'null');if(o&&o.days)S={days:o.days,cust:o.cust||[]};}catch(e){}
+function save(){try{localStorage.setItem('amel_v1',JSON.stringify(S));}catch(e){}}
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parse=s=>{const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2]);};
+const todayS=()=>ymd(new Date());
+let sel=todayS();
+const dayList=d=>S.days[d]||[];
+function allItems(){return ITEMS.map(i=>({id:i[0],cat:i[1],n:NAME(i),c:0})).concat(S.cust.map(c=>({id:c.id,cat:c.cat,n:c.n,c:1})));}
+
+function toggle(id){
+  const a=dayList(sel).slice(), k=a.indexOf(id);
+  if(k>=0)a.splice(k,1);else a.push(id);
+  if(a.length)S.days[sel]=a;else delete S.days[sel];
+  const n=new Date(),cur=sel.slice(0,7)===n.getFullYear()+'-'+pad(n.getMonth()+1),b0=monthInfo(n.getFullYear(),n.getMonth());
+  save();render();
+  const b1=monthInfo(n.getFullYear(),n.getMonth());
+  if(cur&&b1.c>b0.c){rain();if(b1.lv>b0.lv)setTimeout(burst,900);}
+}
+function shiftDay(n){const d=parse(sel);d.setDate(d.getDate()+n);if(ymd(d)>todayS())return;sel=ymd(d);render();}
+function goToday(){sel=todayS();render();}
+function addCustom(){
+  const v=document.getElementById('addTxt').value.trim(); if(!v)return;
+  S.cust.push({id:'c'+Date.now(),cat:document.getElementById('addCat').value,n:v.slice(0,60)});
+  document.getElementById('addTxt').value='';save();render();
+}
+function delCustom(id){
+  if(!confirm(t.delc))return;
+  S.cust=S.cust.filter(c=>c.id!==id);
+  Object.keys(S.days).forEach(d=>{const a=S.days[d].filter(x=>x!==id);if(a.length)S.days[d]=a;else delete S.days[d];});
+  save();render();
+}
+function streak(){
+  const d=new Date();let n=0;
+  if(!dayList(ymd(d)).length)d.setDate(d.getDate()-1);
+  while(dayList(ymd(d)).length){n++;d.setDate(d.getDate()-1);}
+  return n;
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+function render(){
+  const items=allItems(), ids=new Set(items.map(i=>i.id));
+  const done=dayList(sel).filter(x=>ids.has(x));
+  const pct=items.length?Math.round(done.length/items.length*100):0;
+  const d=parse(sel);
+  document.getElementById('dateTitle').textContent=(sel===todayS()?t.today+' • ':'')+d.toLocaleDateString(LG==='tr'?'tr-TR':LG==='ar'?'ar':'en-GB',{day:'numeric',month:'long',weekday:'long'});
+  document.getElementById('pct').textContent='%'+pct;
+  document.getElementById('barFill').style.width=pct+'%';
+  document.getElementById('streak').textContent='🔥 '+t.streak.replace('{n}',streak());
+  document.getElementById('nextB').disabled=sel>=todayS();
+  // son 7 gün
+  let w='';
+  for(let i=6;i>=0;i--){
+    const x=new Date();x.setDate(x.getDate()-i);const s=ymd(x),c=dayList(s).filter(q=>ids.has(q)).length;
+    const wd=t.wk[(x.getDay()+6)%7];
+    w+=`<div class="wd fin-btn${s===sel?' sel':''}${c?' has':''}" onclick="sel='${s}';render()">${wd}<b>${c}</b></div>`;
+  }
+  document.getElementById('week').innerHTML=w;
+  // kategoriler
+  let h='';
+  CATS.forEach(cat=>{
+    const li=items.filter(i=>i.cat===cat); if(!li.length)return;
+    const dn=li.filter(i=>done.includes(i.id)).length;
+    h+=`<div class="sec fin-card"><h2>${t.cats[cat]}<small>${t.done.replace('{a}',dn).replace('{b}',li.length)}</small></h2>`;
+    li.forEach(i=>{
+      const on=done.includes(i.id);
+      h+=`<div style="display:flex;gap:4px;align-items:center"><button class="it fin-btn${on?' on':''}" onclick="toggle('${i.id}')"><span class="ck">${on?'✓':''}</span><span class="n">${esc(i.n)}</span></button>${i.c?`<button class="del" onclick="delCustom('${i.id}')" aria-label="✕">✕</button>`:''}</div>`;
+    });
+    h+='</div>';
+  });
+  document.getElementById('cats').innerHTML=h;
+  renderTree();renderGarden();
+}
+
+function applyText(){
+  document.title=t.title;document.getElementById('h1').textContent=t.h1;
+  document.getElementById('todayB').textContent=t.today;
+  document.getElementById('addTitle').textContent=t.add;
+  document.getElementById('addTxt').placeholder=t.addPh;
+  document.getElementById('addB').textContent=t.addB;
+  document.getElementById('ayTitle').textContent=t.ayT;
+  document.getElementById('note').textContent=t.note;
+  document.getElementById('addCat').innerHTML=CATS.map(c=>`<option value="${c}">${t.cats[c]}</option>`).join('');
+}
+
+
+// ===================== AMEL AĞACI =====================
+const T2={
+tr:{tree:"🌳 Bu ayın ağacı",sp:{zeytin:"Zeytin",hurma:"Hurma",incir:"İncir",nar:"Nar",uzum:"Üzüm",sidr:"Sidr (Sidre)"},
+lv:["Filiz","Fidan","Genç ağaç","Çiçekli ağaç","Meyveli ağaç"],garden:"🌿 Bahçem",gEmpty:"Ay bittiğinde o ayın ağacı burada kalır.",
+info:"{c} amel • aylık hedef {t}",next:"Sonraki seviyeye {n} amel kaldı",full:"Bu ay ağacın meyveli seviyeye ulaştı 🎉",
+ayN:"Kur'an'da geçtiği ayet:",loc:"tr-TR"},
+en:{tree:"🌳 This month's tree",sp:{zeytin:"Olive",hurma:"Date palm",incir:"Fig",nar:"Pomegranate",uzum:"Grape",sidr:"Sidr (lote tree)"},
+lv:["Sprout","Sapling","Young tree","Blossoming tree","Fruiting tree"],garden:"🌿 My garden",gEmpty:"When a month ends, its tree stays here.",
+info:"{c} deeds • monthly goal {t}",next:"{n} more deeds to the next level",full:"Your tree reached the fruiting level this month 🎉",
+ayN:"Mentioned in the Quran at:",loc:"en-GB"},
+ar:{tree:"🌳 شجرة هذا الشهر",sp:{zeytin:"الزيتون",hurma:"النخل",incir:"التين",nar:"الرمان",uzum:"العنب",sidr:"السدر"},
+lv:["برعم","شتلة","شجرة فتية","شجرة مزهرة","شجرة مثمرة"],garden:"🌿 حديقتي",gEmpty:"عند انتهاء الشهر تبقى شجرته هنا.",
+info:"{c} عملًا • هدف الشهر {t}",next:"بقي {n} عملًا للمستوى التالي",full:"بلغت شجرتك مرحلة الإثمار هذا الشهر 🎉",
+ayN:"ورد ذكرها في الآية:",loc:"ar"}}[LG];
+const GOAL=5; // aylık hedef = ayın gün sayısı × GOAL (tüm ameller eşit sayılır)
+// k: tür, p: palmiye, h/s/l: taç rengi, b: çiçek, f: meyve, r: Kur'an'da geçtiği ayet (metni API'den çekilir)
+const SPS=[{k:'zeytin',h:88,s:38,l:36,b:'#fff4d6',f:'#2f3a22',r:'80:29'},{k:'hurma',p:1,h:110,s:42,l:34,b:'#ffe9a8',f:'#d9822b',r:'19:25'},
+{k:'incir',h:100,s:45,l:38,b:'#f7e6f0',f:'#6b3a7a',r:'95:1'},{k:'nar',h:128,s:46,l:34,b:'#ff8a65',f:'#d7263d',r:'55:68'},
+{k:'uzum',h:118,s:40,l:36,b:'#e8f5c8',f:'#6a3d9a',r:'80:28'},{k:'sidr',h:75,s:40,l:38,b:'#fff9c4',f:'#e6b422',r:'53:14'}];
+const SKY=[205,190,160,140,100,50,35,25,15,280,230,215], SCALE=[.42,.58,.76,.92,1];
+const R=n=>{const x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x);};
+const f1=x=>x.toFixed(1);
+function blob(cx,cy,r,h,s,l,sd){
+  const n=8,p=[];let o='';
+  for(let i=0;i<n;i++){const a=i/n*6.283+R(sd+i)*.4,rr=r*(.82+.3*R(sd*3+i));p.push([cx+rr*Math.cos(a),cy+rr*.88*Math.sin(a)]);}
+  for(let i=0;i<n;i++){const a=p[i],b=p[(i+1)%n],L=l-Math.sin((i+.5)/n*6.283)*7+(R(sd*7+i)-.5)*10;
+    o+=`<polygon points="${f1(cx)},${f1(cy)} ${f1(a[0])},${f1(a[1])} ${f1(b[0])},${f1(b[1])}" fill="hsl(${h},${s}%,${f1(L)}%)"/>`;}
+  return o;
+}
+function treeG(m,lv){
+  const sp=SPS[m%6],v=m>=6?1:0,h=sp.h-(v?24:0),s=sp.s,l=sp.l+(v?3:0);let g='';
+  if(lv===1)return `<polygon points="148,302 152,302 151,268 149,268" fill="#6f8f4a"/><polygon points="150,274 128,262 136,278" fill="hsl(${h},${s}%,${l+8}%)"/><polygon points="150,270 174,256 166,274" fill="hsl(${h},${s}%,${l+2}%)"/>`;
+  if(sp.p){
+    g+=`<polygon points="144,302 156,302 153,168 147,168" fill="#8a6a45"/><polygon points="150,302 156,302 153,168 150,168" fill="#6f5233"/>`;
+    const A=[-172,-140,-108,-72,-40,-8,20,160],n=lv===2?3:lv===3?5:8,pick=lv===2?[2,3,4]:lv===3?[1,2,3,4,5]:[0,1,2,3,4,5,6,7];
+    pick.slice(0,n).forEach((k,i)=>{g+=`<g transform="translate(150,166) rotate(${A[k]})"><polygon points="0,0 28,-10 62,-5 84,9 52,3 24,7" fill="hsl(${h},${s}%,${l+(i%2?4:-2)}%)"/><polygon points="0,0 24,7 52,3 84,9 40,12" fill="hsl(${h},${s}%,${l-8}%)"/></g>`;});
+    if(lv===5)for(let i=0;i<7;i++)g+=`<circle cx="${140+R(i)*20}" cy="${174+R(i+9)*12}" r="4" fill="${sp.f}"/>`;
+    return g;
+  }
+  g+=`<polygon points="139,302 161,302 155,200 145,200" fill="#7a5638"/><polygon points="150,302 161,302 155,200 150,200" fill="#5f432b"/><polygon points="148,250 118,226 122,222 150,240" fill="#6a4a30"/><polygon points="152,244 184,222 180,218 150,234" fill="#6a4a30"/>`;
+  const B=lv===2?[[150,214,36]]:lv===3?[[116,226,32],[184,226,32],[150,200,44]]:[[112,222,38],[188,222,38],[128,168,36],[172,168,36],[150,184,52]];
+  B.forEach((b,i)=>{g+=blob(b[0],b[1],b[2],h,s,l,i*5+m*3+1);});
+  if(lv>=4)B.forEach((b,i)=>{for(let k=0;k<3;k++){const a=R(i*4+k+m)*6.28,d=b[2]*.62*R(i+k*3+1);
+    g+=`<circle cx="${f1(b[0]+d*Math.cos(a))}" cy="${f1(b[1]+d*Math.sin(a))}" r="${lv===5&&k<2?4.2:3.2}" fill="${lv===5&&k<2?sp.f:sp.b}"/>`;}});
+  return g;
+}
+function scene(m,lv,big,id,from){
+  const sc=SCALE[lv-1],sk=SKY[m],hs=m>=6?38:125;
+  let o=`<svg viewBox="0 0 300 380" class="ts" role="img"><defs><linearGradient id="k${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="hsl(${sk},60%,62%)" stop-opacity=".38"/><stop offset="1" stop-color="hsl(${sk},50%,70%)" stop-opacity=".05"/></linearGradient><linearGradient id="r${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
+<rect width="300" height="380" fill="url(#k${id})"/><ellipse cx="150" cy="332" rx="240" ry="58" fill="hsl(${hs},35%,42%)" opacity=".6"/><rect y="318" width="300" height="62" fill="#5d4433" opacity=".92"/><ellipse cx="150" cy="318" rx="240" ry="9" fill="hsl(${hs},35%,40%)" opacity=".9"/>`;
+  if(big)o+=`<polygon class="ray" points="140,40 160,40 230,318 70,318" fill="url(#r${id})" opacity=".5"/>`;
+  o+=`<g class="tg" style="transform:scale(${from||sc})"><g class="sw">${treeG(m,lv)}</g></g>`;
+  if(big){
+    [[70,345],[125,360],[190,350],[240,362],[155,340]].forEach((d,i)=>{o+=`<g class="dr" style="animation-delay:${i*.5}s"><ellipse cx="${d[0]}" cy="${d[1]}" rx="6" ry="9" fill="#9fe3ff" opacity=".85"/><ellipse cx="${d[0]-2}" cy="${d[1]-3}" rx="1.8" ry="3" fill="#fff"/></g>`;});
+    [95,150,205].forEach((x,i)=>{o+=`<ellipse class="rd" style="animation-delay:${i*.18}s" cx="${x}" cy="316" rx="4" ry="7" fill="#9fe3ff"/>`;});
+    for(let i=0;i<9;i++)o+=`<circle class="pf" style="animation-delay:${i*.7}s" cx="${25+R(i+m)*250}" cy="${60+R(i+4)*230}" r="${1.6+R(i)*1.6}" fill="#ffe08a"/>`;
+  }
+  return o+'</svg>';
+}
+function monthInfo(y,m){
+  const dim=new Date(y,m+1,0).getDate(),ids=new Set(allItems().map(i=>i.id));let c=0;
+  for(let d=1;d<=dim;d++)c+=dayList(y+'-'+pad(m+1)+'-'+pad(d)).filter(q=>ids.has(q)).length;
+  const t=dim*GOAL,p=Math.min(100,Math.floor(c/t*100));
+  return{c,t,p,lv:p>=100?5:p>=75?4:p>=50?3:p>=25?2:1};
+}
+let treeKey='',treeLv=0;
+function renderTree(){
+  const n=new Date(),m=n.getMonth(),I=monthInfo(n.getFullYear(),m),key=n.getFullYear()+'-'+m,box=document.getElementById('treeSvg');
+  const rebuild=key!==treeKey||I.lv!==treeLv;
+  if(rebuild){
+    const from=(key===treeKey&&treeLv)?SCALE[treeLv-1]:SCALE[0]*.6;
+    box.innerHTML=scene(m,I.lv,1,'m',from);
+    const g=box.querySelector('.tg');requestAnimationFrame(()=>requestAnimationFrame(()=>{g.style.transform=`scale(${SCALE[I.lv-1]})`;}));
+  }
+  treeKey=key;treeLv=I.lv;
+  document.getElementById('trTitle').textContent=T2.tree+' • '+T2.sp[SPS[m%6].k];
+  document.getElementById('trPct').textContent='%'+I.p;
+  document.getElementById('trChips').innerHTML=T2.lv.map((x,i)=>`<span class="ch${i+1===I.lv?' on':''}">${i+1}. ${x}</span>`).join('');
+  const nxt=I.lv<5?Math.max(1,Math.ceil([25,50,75,100][I.lv-1]/100*I.t)-I.c):0;
+  document.getElementById('trInfo').textContent=T2.info.replace('{c}',I.c).replace('{t}',I.t)+' • '+(I.lv<5?T2.next.replace('{n}',nxt):T2.full);
+}
+function rain(){const s=document.querySelector('#treeSvg svg');if(!s)return;s.classList.remove('rain');void s.getBoundingClientRect();s.classList.add('rain');setTimeout(()=>s.classList.remove('rain'),1700);}
+function burst(){
+  const s=document.querySelector('#treeSvg svg');if(!s)return;const NS='http://www.w3.org/2000/svg',g=document.createElementNS(NS,'g');
+  for(let i=0;i<18;i++){const c=document.createElementNS(NS,'circle'),a=i/18*6.283,d=70+Math.random()*70;
+    c.setAttribute('cx',150);c.setAttribute('cy',190);c.setAttribute('r',3+Math.random()*3);c.setAttribute('fill',i%3?'#8bd36a':'#ffd86b');
+    c.style.setProperty('--dx',(Math.cos(a)*d)+'px');c.style.setProperty('--dy',(Math.sin(a)*d-20)+'px');c.style.animation='bu 1.4s ease-out forwards';g.appendChild(c);}
+  s.appendChild(g);setTimeout(()=>g.remove(),1500);
+}
+function renderGarden(){
+  const n=new Date(),cy=n.getFullYear(),cm=n.getMonth(),keys=Object.keys(S.days).sort();let list=[];
+  if(keys.length){const f=parse(keys[0]);let y=f.getFullYear(),m=f.getMonth();
+    while(y<cy||(y===cy&&m<cm)){const I=monthInfo(y,m);if(I.c>0)list.push({y,m,I});m++;if(m>11){m=0;y++;}}}
+  list.reverse();
+  document.getElementById('gTitle').textContent=T2.garden;
+  document.getElementById('gEmpty').textContent=list.length?'':T2.gEmpty;
+  document.getElementById('garden').innerHTML=list.map(o=>`<div class="gm">${scene(o.m,o.I.lv,0,'g'+o.y+o.m)}${new Date(o.y,o.m,1).toLocaleDateString(T2.loc,{month:'long',year:'numeric'})}<br>${T2.sp[SPS[o.m%6].k]} • ${T2.lv[o.I.lv-1]} • %${o.I.p}</div>`).join('');
+}
+// Bu ayın ağacının Kur'an'da geçtiği ayet: yalnızca sure:ayet numarası saklanır, metin ve meal API'den gelir
+async function loadTreeAyah(){
+  const sp=SPS[new Date().getMonth()%6],ed={tr:'tr.yazir',en:'en.sahih',ar:'ar.muyassar'}[LG];
+  try{
+    const r=await fetch(`https://api.alquran.cloud/v1/ayah/${sp.r}/editions/quran-uthmani,${ed}`);if(!r.ok)throw 0;
+    const j=await r.json(),a=j.data[0],b=j.data[1];if(!a||!b||!a.text||!b.text)throw 0;
+    document.getElementById('trAr').textContent=a.text;document.getElementById('trTr').textContent=b.text;
+    document.getElementById('trRef').textContent=`${T2.ayN} ${LG==='ar'?a.surah.name:a.surah.englishName} ${sp.r} • ${t.src}`;
+    document.getElementById('trAyBox').style.display='';
+  }catch(e){}
+}
+
+// Günün ayeti: tarihe göre sabit seçilir, metin/meal API'den gelir (alınamazsa kutu gizli kalır)
+async function loadAyah(){
+  const ed={tr:'tr.yazir',en:'en.sahih',ar:'ar.muyassar'}[LG];
+  const n=Math.floor(Date.now()/86400000)%AYAH.length, ref=AYAH[n];
+  try{
+    const r=await fetch(`https://api.alquran.cloud/v1/ayah/${ref}/editions/quran-uthmani,${ed}`);
+    if(!r.ok)throw 0;
+    const j=await r.json(), a=j.data[0], b=j.data[1];
+    if(!a||!b||!a.text||!b.text)throw 0;
+    document.getElementById('ayAr').textContent=a.text;
+    document.getElementById('ayTr').textContent=b.text;
+    const sn=LG==='ar'?a.surah.name:a.surah.englishName;
+    document.getElementById('ayRef').textContent=`${sn} ${ref} • ${t.src}`;
+    document.getElementById('ayBox').style.display='';
+  }catch(e){}
+}
+
+    function updateThemeButton() {
+        const btn = document.getElementById('theme-btn');
+        if (btn) btn.textContent = document.documentElement.classList.contains('light-mode') ? '☀️' : '🌙';
+    }
+
+    // Safari üst/alt çubuğu sayfa zemin rengine uysun
+    function updateThemeColor() {
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (!meta) return;
+        const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg-color').trim();
+        if (bg) meta.setAttribute('content', bg);
+    }
+
+    function initTheme() {
+        updateThemeButton();
+        updateThemeColor();
+    }
+
+    function toggleTheme() {
+        const isLight = document.documentElement.classList.toggle('light-mode');
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        updateThemeButton();
+        updateThemeColor();
+    }
+
+function init(){initTheme();applyText();render();loadAyah();loadTreeAyah();}
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
