@@ -263,6 +263,19 @@
 .gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
 .gm{text-align:center;font-size:.72rem;color:var(--text-muted);line-height:1.4}
 .gm svg{width:100%;height:auto;border-radius:10px}
+.rb{display:flex;flex-direction:column;gap:4px}
+.rb .row{flex-wrap:nowrap;font-size:.84rem}
+.rb .row b{color:var(--accent-color);font-weight:700;white-space:nowrap}
+.rn{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.rn>div{background:var(--btn-bg);border:1px solid var(--border-color);border-radius:12px;padding:10px;text-align:center}
+.rn b{display:block;font-size:1.25rem;color:var(--accent-color)}
+.rn span{font-size:.74rem;color:var(--text-muted);line-height:1.35}
+.db{display:flex;align-items:flex-end;gap:2px;height:56px;direction:ltr}
+.db i{flex:1;min-width:2px;border-radius:3px 3px 0 0;background:var(--accent-color);min-height:3px}
+.db i.z{background:var(--border-color)}
+.db i.f{background:transparent}
+.rl{font-size:.84rem;line-height:1.6;color:var(--text-color)}
+.rh{font-size:.8rem;font-weight:700;color:var(--text-muted)}
 @media (prefers-reduced-motion:reduce){.sw,.lf,.fr,.fx,.gb,.pf,.ray,.ha,.sr,.cl,.pt,.bf,.wg{animation:none}.tg{transition:none}.rp{animation:none;stroke-dashoffset:0}}
 </style>
 </head>
@@ -301,6 +314,8 @@
 </div>
 <div id="cats" style="display:flex;flex-direction:column;gap:16px"></div>
 <div class="sec fin-card"><h2 id="gTitle"></h2><div class="gg" id="garden"></div><div class="muted" id="gEmpty"></div></div>
+
+<div class="sec fin-card" id="repBox"></div>
 
 <div class="sec fin-card">
 <h2 id="addTitle"></h2>
@@ -434,7 +449,7 @@ function render(){
     h+='</div>';
   });
   document.getElementById('cats').innerHTML=h;
-  renderTree();renderGarden();
+  renderTree();renderGarden();renderReport();
 }
 
 function applyText(){
@@ -611,6 +626,76 @@ async function loadTreeAyah(mm){
     document.getElementById('trAyBox').style.display='';
   }catch(e){}
 }
+
+
+// ===================== AYLIK RAPOR =====================
+// Yalnızca kendi işaretlemelerinden hesaplanır; puan vermez, hüküm bildirmez.
+const T3={
+tr:{h:"📊 Aylık rapor",none:"Bu ay için işaretlenmiş amel yok.",total:"Toplam amel",days:"Amel yapılan gün",streak:"Ay içi en uzun seri",best:"En yoğun gün",goal:"Aylık hedefe oran",
+daily:"Günlük dağılım",cats:"Kategoriler",top:"En çok işaretlediklerin",never:"Bu ay işaretlenmeyenler",prev:"Geçen ay",unit:"amel",d:"gün",
+most:"En çok işaretlenen kategori: {x}",least:"En az işaretlenen kategori: {x}",live:"(ay devam ediyor)",all:"Hepsi en az bir kez işaretlendi."},
+en:{h:"📊 Monthly report",none:"No deeds marked for this month.",total:"Total deeds",days:"Days with deeds",streak:"Longest streak this month",best:"Busiest day",goal:"Share of monthly goal",
+daily:"Daily breakdown",cats:"Categories",top:"Your most marked",never:"Not marked this month",prev:"Last month",unit:"deeds",d:"days",
+most:"Most marked category: {x}",least:"Least marked category: {x}",live:"(month in progress)",all:"Every deed was marked at least once."},
+ar:{h:"📊 التقرير الشهري",none:"لا توجد أعمال مسجلة لهذا الشهر.",total:"مجموع الأعمال",days:"أيام فيها أعمال",streak:"أطول تتابع في الشهر",best:"أكثر الأيام عملًا",goal:"نسبة هدف الشهر",
+daily:"التوزيع اليومي",cats:"الفئات",top:"الأكثر تسجيلًا",never:"لم تُسجَّل هذا الشهر",prev:"الشهر الماضي",unit:"عملًا",d:"أيام",
+most:"أكثر فئة تسجيلًا: {x}",least:"أقل فئة تسجيلًا: {x}",live:"(الشهر جارٍ)",all:"سُجّل كل عمل مرة واحدة على الأقل."}}[LG];
+let rOff=0; // 0 = bu ay, 1 = geçen ay ...
+function rMax(){
+  const k=Object.keys(S.days).sort(); if(!k.length)return 0;
+  const f=parse(k[0]),n=new Date();return Math.max(0,(n.getFullYear()-f.getFullYear())*12+n.getMonth()-f.getMonth());
+}
+function rShift(n){const v=rOff+n;if(v<0||v>rMax())return;rOff=v;renderReport();}
+function monthStats(y,m){
+  const dim=new Date(y,m+1,0).getDate(),n=new Date(),cur=y===n.getFullYear()&&m===n.getMonth(),el=cur?n.getDate():dim;
+  const items=allItems(),ids=new Set(items.map(i=>i.id)),cnt={},daily=[];
+  let c=0,act=0,best=0,run=0,bestN=0,bestD=0;
+  for(let d=1;d<=dim;d++){
+    if(d>el){daily.push(null);continue;}
+    const l=dayList(y+'-'+pad(m+1)+'-'+pad(d)).filter(q=>ids.has(q)),k=l.length;
+    daily.push(k);c+=k;
+    if(k){act++;run++;if(run>best)best=run;}else run=0;
+    if(k>bestN){bestN=k;bestD=d;}
+    l.forEach(q=>cnt[q]=(cnt[q]||0)+1);
+  }
+  return{y,m,dim,el,cur,items,cnt,daily,c,act,best,bestN,bestD};
+}
+function renderReport(){
+  const box=document.getElementById('repBox');if(!box)return;
+  const n=new Date(),dt=new Date(n.getFullYear(),n.getMonth()-rOff,1),y=dt.getFullYear(),m=dt.getMonth();
+  const st=monthStats(y,m),mn=dt.toLocaleDateString(T2.loc,{month:'long',year:'numeric'});
+  const head=`<div class="row"><h2 style="flex:1">${t_h()}</h2><span><button class="tb fin-btn" onclick="rShift(1)" ${rOff>=rMax()?'disabled':''}>‹</button> <button class="tb fin-btn" onclick="rShift(-1)" ${rOff<=0?'disabled':''}>›</button></span></div><div class="rh">${esc(mn)}${st.cur?' '+T3.live:''}</div>`;
+  if(!st.c){box.innerHTML=head+`<div class="muted">${T3.none}</div>`;return;}
+  const goalT=st.dim*GOAL,gp=Math.min(100,Math.floor(st.c/goalT*100));
+  let h=head;
+  h+=`<div class="rn"><div><b>${st.c}</b><span>${T3.total}</span></div><div><b>${st.act}/${st.el}</b><span>${T3.days}</span></div><div><b>${st.best} ${T3.d}</b><span>${T3.streak}</span></div><div><b>%${gp}</b><span>${T3.goal}</span></div></div>`;
+  const mx=Math.max(1,...st.daily.map(v=>v||0));
+  h+=`<div class="rh">${T3.daily}</div><div class="db">${st.daily.map((v,i)=>v===null?'<i class="f" style="height:3px"></i>':v===0?`<i class="z" title="${i+1}"></i>`:`<i style="height:${Math.max(8,Math.round(v/mx*100))}%" title="${i+1}: ${v}"></i>`).join('')}</div>`;
+  if(st.bestN)h+=`<div class="muted">${T3.best}: ${new Date(y,m,st.bestD).toLocaleDateString(T2.loc,{day:'numeric',month:'long'})} • ${st.bestN} ${T3.unit}</div>`;
+  // kategoriler
+  const cr=[];
+  h+=`<div class="rh">${T3.cats}</div>`;
+  CATS.forEach(cat=>{
+    const li=st.items.filter(i=>i.cat===cat);if(!li.length)return;
+    const dn=li.reduce((a,i)=>a+(st.cnt[i.id]||0),0),pos=li.length*st.el,pc=Math.round(dn/pos*100);
+    cr.push({cat,pc});
+    h+=`<div class="rb"><div class="row"><span>${t.cats[cat]}</span><b>${dn} • %${pc}</b></div><div class="bar"><i style="width:${pc}%"></i></div></div>`;
+  });
+  if(cr.length>1){
+    const hi=cr.reduce((a,b)=>b.pc>a.pc?b:a),lo=cr.reduce((a,b)=>b.pc<a.pc?b:a);
+    if(hi.pc!==lo.pc)h+=`<div class="rl">${T3.most.replace('{x}',t.cats[hi.cat])}<br>${T3.least.replace('{x}',t.cats[lo.cat])}</div>`;
+  }
+  // en çok işaretlenenler / işaretlenmeyenler
+  const sorted=st.items.filter(i=>st.cnt[i.id]).sort((a,b)=>st.cnt[b.id]-st.cnt[a.id]).slice(0,3);
+  if(sorted.length)h+=`<div class="rh">${T3.top}</div><div class="rl">${sorted.map(i=>`• ${esc(i.n)} — ${st.cnt[i.id]} ${T3.d}`).join('<br>')}</div>`;
+  const nv=st.items.filter(i=>!st.cnt[i.id]);
+  h+=`<div class="rh">${T3.never}</div><div class="rl">${nv.length?nv.slice(0,5).map(i=>`• ${esc(i.n)}`).join('<br>')+(nv.length>5?`<br>+${nv.length-5}`:''):T3.all}</div>`;
+  // geçen ayla karşılaştırma
+  const pd=new Date(y,m-1,1),pc2=monthInfo(pd.getFullYear(),pd.getMonth()).c;
+  if(pc2>0){const df=st.c-pc2;h+=`<div class="muted">${T3.prev}: ${pc2} ${T3.unit} (${df>0?'+':df<0?'−':'±'}${Math.abs(df)})</div>`;}
+  box.innerHTML=h;
+}
+function t_h(){return T3.h;}
 
 // Günün ayeti: tarihe göre sabit seçilir, metin/meal API'den gelir (alınamazsa kutu gizli kalır)
 async function loadAyah(){
