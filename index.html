@@ -264,6 +264,13 @@
 <div class="muted" id="trInfo" style="text-align:center"></div>
 <div id="trAyBox" style="display:none"><div class="ay" id="trAr" style="font-size:1.25rem"></div><div class="tr2" id="trTr"></div><div class="muted" id="trRef"></div></div>
 </div>
+<div class="sec fin-card" id="testBox" style="display:none">
+<h2>🧪 Test modu (önizleme)</h2>
+<div class="add"><select id="tM" onchange="tMonth()"></select></div>
+<div class="chips" id="tL"></div>
+<div class="row"><button class="tb fin-btn" onclick="tPlay()">▶ Büyüt</button><button class="tb fin-btn" onclick="tOff()">Normal görünüm</button></div>
+<div class="muted">Yalnızca görünümü gösterir, kayıtlı amellerini değiştirmez. Kapatmak için kodda <b>TEST=false</b> yap.</div>
+</div>
 <div id="cats" style="display:flex;flex-direction:column;gap:16px"></div>
 <div class="sec fin-card"><h2 id="gTitle"></h2><div class="gg" id="garden"></div><div class="muted" id="gEmpty"></div></div>
 
@@ -479,9 +486,32 @@ function monthInfo(y,m){
   const t=dim*GOAL,p=Math.min(100,Math.floor(c/t*100));
   return{c,t,p,lv:p>=100?5:p>=75?4:p>=50?3:p>=25?2:1};
 }
-let treeKey='',treeLv=0;
+const TEST=true; // test bittiğinde false yap: önizleme paneli kaybolur, ağaç normal çalışır
+let PREV=null,treeKey='',treeLv=0,tTimer=null;
+function tInit(){
+  if(!TEST)return;
+  document.getElementById('testBox').style.display='';
+  document.getElementById('tM').innerHTML=Array.from({length:12},(_,i)=>`<option value="${i}">${new Date(2025,i,1).toLocaleDateString(T2.loc,{month:'long'})} • ${T2.sp[SPS[i%6].k]}${i>=6?' (2)':''}</option>`).join('');
+  document.getElementById('tM').value=new Date().getMonth();
+  document.getElementById('tL').innerHTML=T2.lv.map((x,i)=>`<button class="ch fin-btn" onclick="tSet(${i+1})">${i+1}. ${x}</button>`).join('');
+}
+function tSet(lv,quiet){
+  if(tTimer&&!quiet){clearInterval(tTimer);tTimer=null;}
+  const old=PREV?PREV.lv:0;PREV={m:+document.getElementById('tM').value,lv};
+  renderTree();loadTreeAyah(PREV.m);
+  if(lv>old){setTimeout(rain,300);setTimeout(burst,1300);}
+}
+function tMonth(){tSet(PREV?PREV.lv:5);}
+function tPlay(){
+  if(tTimer)clearInterval(tTimer);
+  let lv=1;PREV=null;tSet(1,1);
+  tTimer=setInterval(()=>{lv++;if(lv>5){clearInterval(tTimer);tTimer=null;return;}tSet(lv,1);},2600);
+}
+function tOff(){if(tTimer){clearInterval(tTimer);tTimer=null;}PREV=null;renderTree();loadTreeAyah();}
 function renderTree(){
-  const n=new Date(),m=n.getMonth(),I=monthInfo(n.getFullYear(),m),key=n.getFullYear()+'-'+m,box=document.getElementById('treeSvg');
+  const n=new Date();let m=n.getMonth(),I=monthInfo(n.getFullYear(),m);
+  if(PREV){m=PREV.m;I={c:0,t:0,p:[0,25,50,75,100][PREV.lv-1],lv:PREV.lv};}
+  const key=n.getFullYear()+'-'+m+(PREV?'p':''),box=document.getElementById('treeSvg');
   const rebuild=key!==treeKey||I.lv!==treeLv;
   if(rebuild){
     const from=(key===treeKey&&treeLv)?SCALE[treeLv-1]:SCALE[0]*.6;
@@ -493,7 +523,7 @@ function renderTree(){
   document.getElementById('trPct').textContent='%'+I.p;
   document.getElementById('trChips').innerHTML=T2.lv.map((x,i)=>`<span class="ch${i+1===I.lv?' on':''}">${i+1}. ${x}</span>`).join('');
   const nxt=I.lv<5?Math.max(1,Math.ceil([25,50,75,100][I.lv-1]/100*I.t)-I.c):0;
-  document.getElementById('trInfo').textContent=T2.info.replace('{c}',I.c).replace('{t}',I.t)+' • '+(I.lv<5?T2.next.replace('{n}',nxt):T2.full);
+  document.getElementById('trInfo').textContent=PREV?'🧪 Önizleme':T2.info.replace('{c}',I.c).replace('{t}',I.t)+' • '+(I.lv<5?T2.next.replace('{n}',nxt):T2.full);
 }
 function rain(){const s=document.querySelector('#treeSvg svg');if(!s)return;s.classList.remove('rain');void s.getBoundingClientRect();s.classList.add('rain');setTimeout(()=>s.classList.remove('rain'),1700);}
 function burst(){
@@ -513,8 +543,8 @@ function renderGarden(){
   document.getElementById('garden').innerHTML=list.map(o=>`<div class="gm">${scene(o.m,o.I.lv,0,'g'+o.y+o.m)}${new Date(o.y,o.m,1).toLocaleDateString(T2.loc,{month:'long',year:'numeric'})}<br>${T2.sp[SPS[o.m%6].k]} • ${T2.lv[o.I.lv-1]} • %${o.I.p}</div>`).join('');
 }
 // Bu ayın ağacının Kur'an'da geçtiği ayet: yalnızca sure:ayet numarası saklanır, metin ve meal API'den gelir
-async function loadTreeAyah(){
-  const sp=SPS[new Date().getMonth()%6],ed={tr:'tr.yazir',en:'en.sahih',ar:'ar.muyassar'}[LG];
+async function loadTreeAyah(mm){
+  const sp=SPS[(mm===undefined?new Date().getMonth():mm)%6],ed={tr:'tr.yazir',en:'en.sahih',ar:'ar.muyassar'}[LG];
   try{
     const r=await fetch(`https://api.alquran.cloud/v1/ayah/${sp.r}/editions/quran-uthmani,${ed}`);if(!r.ok)throw 0;
     const j=await r.json(),a=j.data[0],b=j.data[1];if(!a||!b||!a.text||!b.text)throw 0;
@@ -566,7 +596,7 @@ async function loadAyah(){
         updateThemeColor();
     }
 
-function init(){initTheme();applyText();render();loadAyah();loadTreeAyah();}
+function init(){initTheme();applyText();render();loadAyah();loadTreeAyah();tInit();}
 document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
