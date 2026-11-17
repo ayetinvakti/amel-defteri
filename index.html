@@ -338,18 +338,21 @@ tr:{title:"Amel Defteri | Ayetin Vakti",h1:"Amel Defteri",today:"Bugün",day:"G�
 add:"➕ Kendi amelini ekle",addPh:"Örn: Hasta ziyareti",addB:"Ekle",delc:"Bu amel silinsin mi?",
 ayT:"📖 Günün hatırlatması (ayet)",src:"Kaynak: alquran.cloud • Meal: Elmalılı Hamdi Yazır",
 note:"Bu defter yalnızca kendi takibin içindir; amellere puan vermez, hüküm bildirmez. Namazlar için 5-5 Namaz sayfasına bak.",
+auto:"Kur'an oku sayfasında okuduğun veya dinlediğin ayetler “Kur'an okudum” ve “Kur'an dinledim” amellerini kendiliğinden işaretler; istersen elle kaldırabilirsin.",
 cats:{quran:"📖 Kur'an",dua:"🤲 Dua ve Zikir",sadaka:"💝 Sadaka ve Hayır",ahlak:"🌿 Güzel Ahlak",irade:"🧭 İrade ve Nefis Terbiyesi"},
 wk:["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"]},
 en:{title:"Deeds Journal | Ayetin Vakti",h1:"Deeds Journal",today:"Today",day:"Day",streak:"Streak: {n} days",done:"{a} / {b}",
 add:"➕ Add your own deed",addPh:"e.g. Visit the sick",addB:"Add",delc:"Delete this deed?",
 ayT:"📖 Reminder of the day (ayah)",src:"Source: alquran.cloud • Translation: Sahih International",
 note:"This journal is only for your own tracking; it gives no points and issues no rulings. For prayers, see the 5-5 Prayer page.",
+auto:"Verses you read or listen to on the Quran page automatically mark “I read the Quran” and “I listened to the Quran”; you can remove them by hand.",
 cats:{quran:"📖 Quran",dua:"🤲 Dua & Dhikr",sadaka:"💝 Charity & Good Deeds",ahlak:"🌿 Good Character",irade:"🧭 Willpower & Self-discipline"},
 wk:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]},
 ar:{title:"دفتر الأعمال | آية الوقت",h1:"دفتر الأعمال",today:"اليوم",day:"يوم",streak:"المتتالية: {n} يومًا",done:"{a} / {b}",
 add:"➕ أضف عملك",addPh:"مثال: زيارة مريض",addB:"إضافة",delc:"هل تحذف هذا العمل؟",
 ayT:"📖 تذكير اليوم (آية)",src:"المصدر: alquran.cloud • التفسير: الميسر",
 note:"هذا الدفتر لمتابعتك الشخصية فقط؛ لا يمنح نقاطًا ولا يصدر أحكامًا. للصلوات انظر صفحة 5-5 للصلاة.",
+auto:"الآيات التي تقرؤها أو تستمع إليها في صفحة القرآن تُعلِّم تلقائيًا «قرأت القرآن» و«استمعت إلى القرآن»؛ ويمكنك إزالتها يدويًا.",
 cats:{quran:"📖 القرآن",dua:"🤲 الدعاء والذكر",sadaka:"💝 الصدقة والخير",ahlak:"🌿 حسن الخلق",irade:"🧭 الإرادة وتزكية النفس"},
 wk:["اثن","ثلا","أرب","خمي","جمع","سبت","أحد"]}};
 const LG=TXT[localStorage.getItem('user_lang')]?localStorage.getItem('user_lang'):'tr', t=TXT[LG];
@@ -459,7 +462,7 @@ function applyText(){
   document.getElementById('addTxt').placeholder=t.addPh;
   document.getElementById('addB').textContent=t.addB;
   document.getElementById('ayTitle').textContent=t.ayT;
-  document.getElementById('note').textContent=t.note;
+  document.getElementById('note').textContent=t.note+' '+t.auto;
   document.getElementById('addCat').innerHTML=CATS.map(c=>`<option value="${c}">${t.cats[c]}</option>`).join('');
 }
 
@@ -739,6 +742,13 @@ async function loadAyah(){
         updateThemeColor();
     }
 
+function reloadS(){
+  try{const o=JSON.parse(localStorage.getItem('amel_v1')||'null');if(o&&o.days)S={days:o.days,cust:o.cust||[]};}catch(e){}
+  render();
+}
+// Kur'an oku sayfasından dönünce otomatik işaretler görünsün
+window.addEventListener('pageshow',e=>{if(e.persisted)reloadS();});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)reloadS();});
 function init(){initTheme();applyText();render();loadAyah();loadTreeAyah();tInit();}
 document.addEventListener('DOMContentLoaded',init);
 </script>
