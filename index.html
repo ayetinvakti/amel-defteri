@@ -217,25 +217,53 @@
 .tr2{color:var(--translation-color);font-size:.9rem;line-height:1.6}
 
 
-.ts{width:100%;height:auto;max-height:440px;display:block;border-radius:14px}
-.tg{transform-origin:150px 300px;transition:transform 1.6s cubic-bezier(.2,.9,.25,1)}
-.sw{transform-origin:150px 300px;animation:sw 5s ease-in-out infinite}
-@keyframes sw{0%,100%{transform:rotate(-1.1deg)}50%{transform:rotate(1.1deg)}}
-.pf{animation:fl 6s ease-in-out infinite}
-@keyframes fl{0%,100%{transform:translate(0,0);opacity:.15}50%{transform:translate(8px,-18px);opacity:.95}}
-.dr,.ray{animation:gl 2.8s ease-in-out infinite}
+.ts{width:100%;height:auto;max-height:460px;display:block;border-radius:14px}
+.tg{transform-origin:150px 304px;transition:transform 2s cubic-bezier(.34,1.45,.5,1)}
+.sw{transform-origin:150px 304px;animation:sw 6s ease-in-out infinite}
+@keyframes sw{0%,100%{transform:rotate(-.9deg)}50%{transform:rotate(1deg)}}
+.lf{animation:lf 4.5s ease-in-out infinite}
+@keyframes lf{0%,100%{transform:rotate(-1.6deg) scale(1)}50%{transform:rotate(1.8deg) scale(1.012)}}
+.fr{transform-origin:0 0;animation:fr 4.2s ease-in-out infinite}
+@keyframes fr{0%,100%{transform:rotate(-2.2deg)}50%{transform:rotate(2.6deg)}}
+.fx{animation:bob 3.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(1.6px)}}
+.gb{animation:gb 3.4s ease-in-out infinite}
+@keyframes gb{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+.pf{animation:fl 7s ease-in-out infinite}
+@keyframes fl{0%,100%{transform:translate(0,0);opacity:.1}50%{transform:translate(10px,-20px);opacity:.9}}
+.ray{animation:gl 5s ease-in-out infinite}.ha{animation:gl 6s ease-in-out infinite}
 @keyframes gl{0%,100%{opacity:.5}50%{opacity:1}}
-.rd{opacity:0}
-.rain .rd{animation:fall 1.1s ease-in forwards}
-@keyframes fall{0%{opacity:0;transform:translateY(-200px)}15%{opacity:1}100%{opacity:0;transform:translateY(0)}}
+.sr{animation:rot 60s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.cl{animation:cl 80s linear infinite}
+@keyframes cl{from{transform:translateX(-70px)}to{transform:translateX(380px)}}
+.rp{stroke-dasharray:1;stroke-dashoffset:1;animation:rg 2.4s ease-out forwards}
+@keyframes rg{to{stroke-dashoffset:0}}
+.rgl,.wt,.rd,.spl{opacity:0}
+.rain .rgl{animation:rgl 2.8s ease-in-out}
+@keyframes rgl{0%{opacity:0}40%{opacity:.95}100%{opacity:0}}
+.rain .wt{animation:wet 3.2s ease-out}
+@keyframes wet{0%{opacity:0}35%{opacity:.5}100%{opacity:0}}
+.rain .rd{animation:fall 1s cubic-bezier(.5,0,1,.6) forwards}
+@keyframes fall{0%{opacity:0;transform:translateY(-290px)}12%{opacity:1}90%{opacity:1}100%{opacity:0;transform:translateY(0)}}
+.spl{transform-box:fill-box;transform-origin:center}
+.rain .spl{animation:spl .7s ease-out forwards}
+@keyframes spl{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(7,3)}}
+.pt{opacity:0;animation:pt 9s linear infinite}
+@keyframes pt{0%{opacity:0;transform:translate(0,0) rotate(0)}10%{opacity:.95}100%{opacity:0;transform:translate(26px,150px) rotate(260deg)}}
+.bf{animation:bfly 16s linear infinite}
+@keyframes bfly{0%{transform:translate(40px,250px)}25%{transform:translate(120px,212px)}50%{transform:translate(225px,238px)}75%{transform:translate(170px,196px)}100%{transform:translate(40px,250px)}}
+.wg{transform-origin:0 0;animation:wg .3s ease-in-out infinite alternate}
+@keyframes wg{from{transform:scaleX(1)}to{transform:scaleX(.3)}}
 @keyframes bu{from{opacity:1;transform:translate(0,0) scale(1)}to{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.4)}}
+@keyframes ring{from{opacity:.9;transform:scale(1)}to{opacity:0;transform:scale(9)}}
 .chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
 .ch{font-size:.72rem;padding:4px 9px;border-radius:20px;border:1px solid var(--border-color);color:var(--text-muted)}
 .ch.on{border-color:var(--accent-color);color:var(--accent-color);font-weight:700}
 .gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
 .gm{text-align:center;font-size:.72rem;color:var(--text-muted);line-height:1.4}
 .gm svg{width:100%;height:auto;border-radius:10px}
-@media (prefers-reduced-motion:reduce){.sw,.pf,.dr,.ray{animation:none}.tg{transition:none}}
+@media (prefers-reduced-motion:reduce){.sw,.lf,.fr,.fx,.gb,.pf,.ray,.ha,.sr,.cl,.pt,.bf,.wg{animation:none}.tg{transition:none}.rp{animation:none;stroke-dashoffset:0}}
 </style>
 </head>
 <body>
@@ -452,31 +480,60 @@ function blob(cx,cy,r,h,s,l,sd){
 }
 function treeG(m,lv){
   const sp=SPS[m%6],v=m>=6?1:0,h=sp.h-(v?24:0),s=sp.s,l=sp.l+(v?3:0);let g='';
-  if(lv===1)return `<polygon points="148,302 152,302 151,268 149,268" fill="#6f8f4a"/><polygon points="150,274 128,262 136,278" fill="hsl(${h},${s}%,${l+8}%)"/><polygon points="150,270 174,256 166,274" fill="hsl(${h},${s}%,${l+2}%)"/>`;
+  if(lv===1)return `<polygon points="148,304 152,304 151,270 149,270" fill="#7a9a4e"/><g class="lf" style="transform-origin:150px 274px"><polygon points="150,276 126,262 135,280" fill="hsl(${h},${s}%,${l+10}%)"/><polygon points="150,271 176,255 167,276" fill="hsl(${h},${s}%,${l+3}%)"/></g>`;
   if(sp.p){
-    g+=`<polygon points="144,302 156,302 153,168 147,168" fill="#8a6a45"/><polygon points="150,302 156,302 153,168 150,168" fill="#6f5233"/>`;
-    const A=[-172,-140,-108,-72,-40,-8,20,160],n=lv===2?3:lv===3?5:8,pick=lv===2?[2,3,4]:lv===3?[1,2,3,4,5]:[0,1,2,3,4,5,6,7];
-    pick.slice(0,n).forEach((k,i)=>{g+=`<g transform="translate(150,166) rotate(${A[k]})"><polygon points="0,0 28,-10 62,-5 84,9 52,3 24,7" fill="hsl(${h},${s}%,${l+(i%2?4:-2)}%)"/><polygon points="0,0 24,7 52,3 84,9 40,12" fill="hsl(${h},${s}%,${l-8}%)"/></g>`;});
-    if(lv===5)for(let i=0;i<7;i++)g+=`<circle cx="${140+R(i)*20}" cy="${174+R(i+9)*12}" r="4" fill="${sp.f}"/>`;
+    g+=`<polygon points="141,304 159,304 153,168 147,168" fill="#8a6a45"/><polygon points="150,304 159,304 153,168 150,168" fill="#6f5233"/>`;
+    for(let y=292;y>182;y-=13)g+=`<path d="M145,${y} L155,${y-1.5}" stroke="#4e3622" stroke-width="2" opacity=".5"/>`;
+    const A=[-172,-140,-108,-72,-40,-8,20,160],pick=lv===2?[2,3,4]:lv===3?[1,2,3,4,5]:[0,1,2,3,4,5,6,7];
+    pick.forEach((k,i)=>{g+=`<g transform="translate(150,166) rotate(${A[k]})"><g class="fr" style="animation-delay:${(i*.45).toFixed(2)}s"><polygon points="0,0 28,-10 62,-5 84,9 52,3 24,7" fill="hsl(${h},${s}%,${l+(i%2?5:-2)}%)"/><polygon points="0,0 24,7 52,3 84,9 40,12" fill="hsl(${h},${s}%,${l-8}%)"/></g></g>`;});
+    if(lv===5)for(let i=0;i<7;i++)g+=`<circle class="fx" style="animation-delay:${(i*.4).toFixed(1)}s" cx="${f1(140+R(i)*20)}" cy="${f1(174+R(i+9)*12)}" r="4" fill="${sp.f}"/>`;
     return g;
   }
-  g+=`<polygon points="139,302 161,302 155,200 145,200" fill="#7a5638"/><polygon points="150,302 161,302 155,200 150,200" fill="#5f432b"/><polygon points="148,250 118,226 122,222 150,240" fill="#6a4a30"/><polygon points="152,244 184,222 180,218 150,234" fill="#6a4a30"/>`;
+  g+=`<polygon points="130,304 170,304 156,282 144,282" fill="#6a4a30"/><polygon points="139,304 161,304 155,200 145,200" fill="#7a5638"/><polygon points="150,304 161,304 155,200 150,200" fill="#5f432b"/><polygon points="145,296 148,296 149,210 147,210" fill="#4e3622" opacity=".45"/><polygon points="148,250 118,226 122,222 150,240" fill="#6a4a30"/><polygon points="152,244 184,222 180,218 150,234" fill="#6a4a30"/>`;
   const B=lv===2?[[150,214,36]]:lv===3?[[116,226,32],[184,226,32],[150,200,44]]:[[112,222,38],[188,222,38],[128,168,36],[172,168,36],[150,184,52]];
-  B.forEach((b,i)=>{g+=blob(b[0],b[1],b[2],h,s,l,i*5+m*3+1);});
-  if(lv>=4)B.forEach((b,i)=>{for(let k=0;k<3;k++){const a=R(i*4+k+m)*6.28,d=b[2]*.62*R(i+k*3+1);
-    g+=`<circle cx="${f1(b[0]+d*Math.cos(a))}" cy="${f1(b[1]+d*Math.sin(a))}" r="${lv===5&&k<2?4.2:3.2}" fill="${lv===5&&k<2?sp.f:sp.b}"/>`;}});
+  B.forEach((b,i)=>{g+=`<g class="lf" style="animation-delay:${(i*.7).toFixed(1)}s;transform-origin:${b[0]}px ${f1(b[1]+b[2]*.6)}px">${blob(b[0],b[1],b[2],h,s,l,i*5+m*3+1)}</g>`;});
+  if(lv>=4)B.forEach((b,i)=>{for(let k=0;k<3;k++){const a=R(i*4+k+m)*6.28,d=b[2]*.62*R(i+k*3+1),fr=lv===5&&k<2;
+    g+=`<circle${fr?` class="fx" style="animation-delay:${((i+k)*.5).toFixed(1)}s"`:''} cx="${f1(b[0]+d*Math.cos(a))}" cy="${f1(b[1]+d*Math.sin(a))}" r="${fr?4.2:3.2}" fill="${fr?sp.f:sp.b}"/>`;}});
   return g;
 }
 function scene(m,lv,big,id,from){
-  const sc=SCALE[lv-1],sk=SKY[m],hs=m>=6?38:125;
-  let o=`<svg viewBox="0 0 300 380" class="ts" role="img"><defs><linearGradient id="k${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="hsl(${sk},60%,62%)" stop-opacity=".38"/><stop offset="1" stop-color="hsl(${sk},50%,70%)" stop-opacity=".05"/></linearGradient><linearGradient id="r${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
-<rect width="300" height="380" fill="url(#k${id})"/><ellipse cx="150" cy="332" rx="240" ry="58" fill="hsl(${hs},35%,42%)" opacity=".6"/><rect y="318" width="300" height="62" fill="#5d4433" opacity=".92"/><ellipse cx="150" cy="318" rx="240" ry="9" fill="hsl(${hs},35%,40%)" opacity=".9"/>`;
-  if(big)o+=`<polygon class="ray" points="140,40 160,40 230,318 70,318" fill="url(#r${id})" opacity=".5"/>`;
+  const sc=SCALE[lv-1],sk=SKY[m],au=m>=6,hs=au?40:122,sun=au?'#ffb25c':'#ffe27a',sp=SPS[m%6],top='M0,312 Q75,296 150,303 T300,300';
+  const gy=x=>{if(x<=150){const t=x/150;return (1-t)*(1-t)*312+2*(1-t)*t*296+t*t*303;}const t=(x-150)/150;return (1-t)*(1-t)*303+2*(1-t)*t*310+t*t*300;};
+  let o=`<svg viewBox="0 0 300 380" class="ts" role="img"><defs>
+<linearGradient id="k${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="hsl(${sk},62%,64%)" stop-opacity=".45"/><stop offset="1" stop-color="hsl(${sk},50%,78%)" stop-opacity=".06"/></linearGradient>
+<radialGradient id="h${id}"><stop offset="0" stop-color="${sun}" stop-opacity=".75"/><stop offset="1" stop-color="${sun}" stop-opacity="0"/></radialGradient>
+<linearGradient id="r${id}" gradientUnits="userSpaceOnUse" x1="60" y1="52" x2="190" y2="302"><stop offset="0" stop-color="#fff6c8" stop-opacity=".6"/><stop offset="1" stop-color="#fff6c8" stop-opacity="0"/></linearGradient>
+<linearGradient id="s${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6e4d36"/><stop offset="1" stop-color="#34241a"/></linearGradient></defs>
+<rect width="300" height="380" fill="url(#k${id})"/>
+<circle cx="60" cy="52" r="78" fill="url(#h${id})"${big?' class="ha"':''}/>`;
+  if(big){
+    o+='<g class="sr" style="transform-origin:60px 52px">';for(let i=0;i<12;i++)o+=`<polygon points="60,22 63.5,37 56.5,37" fill="${sun}" opacity=".55" transform="rotate(${i*30} 60 52)"/>`;o+='</g>';
+    o+=`<g class="cl"><ellipse cx="0" cy="40" rx="26" ry="9" fill="#fff" opacity=".5"/><ellipse cx="14" cy="33" rx="16" ry="9" fill="#fff" opacity=".5"/><ellipse cx="-14" cy="35" rx="14" ry="7" fill="#fff" opacity=".5"/></g><g class="cl" style="animation-duration:110s;animation-delay:-55s"><ellipse cx="0" cy="92" rx="22" ry="7" fill="#fff" opacity=".4"/><ellipse cx="12" cy="86" rx="13" ry="7" fill="#fff" opacity=".4"/></g>`;
+  }
+  o+=`<circle cx="60" cy="52" r="17" fill="${sun}"/><path d="M0,286 Q80,252 170,280 T300,268 V330 H0Z" fill="hsl(${hs},32%,48%)" opacity=".5"/>`;
+  if(big)[[100,300,140,302],[150,302,195,303],[205,302,250,300],[252,300,292,298]].forEach((r,i)=>{o+=`<polygon class="ray" style="animation-delay:${(i*1.1).toFixed(1)}s" points="62,54 ${r[0]},${r[1]} ${r[2]},${r[3]}" fill="url(#r${id})" opacity=".55"/>`;});
+  // toprak kesiti: katmanlı toprak, taşlar, tanecikler
+  o+=`<path d="${top} V380 H0Z" fill="url(#s${id})"/>`;
+  if(big){
+    o+='<ellipse class="wt" cx="150" cy="336" rx="85" ry="32" fill="#1d120b"/>';
+    for(let i=0;i<30;i++){const x=R(i)*300,y=gy(x)+10+R(i+30)*(374-gy(x));o+=`<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(.8+R(i+60)*1.2)}" fill="${i%2?'#a07a55':'#1f140d'}" opacity=".32"/>`;}
+    [[40,350,8,5],[255,342,9,6],[200,368,7,4],[92,362,6,4],[268,370,8,5]].forEach(r=>{o+=`<ellipse cx="${r[0]}" cy="${r[1]}" rx="${r[2]}" ry="${r[3]}" fill="#8b8076" opacity=".6"/><ellipse cx="${r[0]-2}" cy="${r[1]-1.5}" rx="${r[2]*.45}" ry="${r[3]*.35}" fill="#c9c0b5" opacity=".5"/>`;});
+    o+='<path d="M0,338 Q70,332 150,340 T300,336" stroke="#2b1b12" stroke-opacity=".35" stroke-width="1.5" fill="none"/>';
+    const RP=['M150,305 C150,325 146,345 140,372','M150,305 C156,325 160,345 168,374','M150,306 C135,314 112,322 92,338','M150,306 C166,314 190,322 212,336','M146,336 C134,346 124,358 118,374','M162,338 C176,348 188,360 196,374','M96,335 C90,342 86,354 84,368','M210,335 C220,342 226,354 230,366'];
+    const nr=[2,4,6,7,8][lv-1];
+    RP.slice(0,nr).forEach((d,i)=>{o+=`<path class="rp" pathLength="1" style="animation-delay:${(i*.25).toFixed(2)}s" d="${d}" stroke="#b58d5f" stroke-width="${i<2?3.4:2.2}" fill="none" stroke-linecap="round"/>`;});
+    RP.slice(0,nr).forEach(d=>{o+=`<path class="rgl" d="${d}" stroke="#bfeaff" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;});
+  }
+  o+=`<path d="${top}" fill="none" stroke="hsl(${hs},38%,38%)" stroke-width="9"/><path d="M0,309 Q75,293 150,300 T300,297" fill="none" stroke="hsl(${hs},45%,50%)" stroke-width="3"/><ellipse cx="${f1(150+30*sc)}" cy="304" rx="${f1(22+60*sc)}" ry="${f1(4+5*sc)}" fill="#000" opacity=".2"/>`;
   o+=`<g class="tg" style="transform:scale(${from||sc})"><g class="sw">${treeG(m,lv)}</g></g>`;
   if(big){
-    [[70,345],[125,360],[190,350],[240,362],[155,340]].forEach((d,i)=>{o+=`<g class="dr" style="animation-delay:${i*.5}s"><ellipse cx="${d[0]}" cy="${d[1]}" rx="6" ry="9" fill="#9fe3ff" opacity=".85"/><ellipse cx="${d[0]-2}" cy="${d[1]-3}" rx="1.8" ry="3" fill="#fff"/></g>`;});
-    [95,150,205].forEach((x,i)=>{o+=`<ellipse class="rd" style="animation-delay:${i*.18}s" cx="${x}" cy="316" rx="4" ry="7" fill="#9fe3ff"/>`;});
-    for(let i=0;i<9;i++)o+=`<circle class="pf" style="animation-delay:${i*.7}s" cx="${25+R(i+m)*250}" cy="${60+R(i+4)*230}" r="${1.6+R(i)*1.6}" fill="#ffe08a"/>`;
+    for(let i=0;i<26;i++){const x=6+i*11.2+R(i)*5,y=gy(x)-2,hh=7+R(i+5)*8;o+=`<polygon class="gb" style="animation-delay:${(R(i+2)*3).toFixed(1)}s;transform-origin:${f1(x)}px ${f1(y)}px" points="${f1(x-2)},${f1(y)} ${f1(x)},${f1(y-hh)} ${f1(x+2)},${f1(y)}" fill="hsl(${hs},45%,${f1(36+R(i)*14)}%)"/>`;}
+    for(let i=0;i<10;i++)o+=`<circle class="pf" style="animation-delay:${(i*.7).toFixed(1)}s" cx="${f1(70+R(i+m)*200)}" cy="${f1(70+R(i+4)*220)}" r="${f1(1+R(i)*.9)}" fill="#fff2b0"/>`;
+    if(lv>=4){
+      for(let i=0;i<7;i++)o+=`<ellipse class="pt" style="animation-delay:${(i*1.3).toFixed(1)}s;animation-duration:${(8+R(i)*4).toFixed(1)}s" cx="${f1(105+R(i)*90)}" cy="${f1(150+R(i+3)*50)}" rx="2.8" ry="1.5" fill="${sp.b}"/>`;
+      o+='<g class="bf"><g class="wg"><path d="M0,0 C-7,-7 -10,0 -3,2Z M0,0 C7,-7 10,0 3,2Z" fill="#ffc2da"/></g></g>';
+    }
+    [[95,0],[128,.25],[150,.5],[172,.15],[205,.4]].forEach(d=>{o+=`<g transform="translate(${d[0]},302)"><path class="rd" style="animation-delay:${d[1]}s" d="M0,-8 C5,-1 5,4 0,5 C-5,4 -5,-1 0,-8Z" fill="#a9e6ff" stroke="#fff" stroke-width=".6"/></g><ellipse class="spl" style="animation-delay:${(d[1]+.9).toFixed(2)}s" cx="${d[0]}" cy="303" rx="3" ry="1.2" fill="none" stroke="#dff6ff" stroke-width="1"/>`;});
   }
   return o+'</svg>';
 }
@@ -486,7 +543,7 @@ function monthInfo(y,m){
   const t=dim*GOAL,p=Math.min(100,Math.floor(c/t*100));
   return{c,t,p,lv:p>=100?5:p>=75?4:p>=50?3:p>=25?2:1};
 }
-const TEST=true; // test bittiğinde false yap: önizleme paneli kaybolur, ağaç normal çalışır
+const TEST=false; // test bittiğinde false yap: önizleme paneli kaybolur, ağaç normal çalışır
 let PREV=null,treeKey='',treeLv=0,tTimer=null;
 function tInit(){
   if(!TEST)return;
@@ -525,12 +582,13 @@ function renderTree(){
   const nxt=I.lv<5?Math.max(1,Math.ceil([25,50,75,100][I.lv-1]/100*I.t)-I.c):0;
   document.getElementById('trInfo').textContent=PREV?'🧪 Önizleme':T2.info.replace('{c}',I.c).replace('{t}',I.t)+' • '+(I.lv<5?T2.next.replace('{n}',nxt):T2.full);
 }
-function rain(){const s=document.querySelector('#treeSvg svg');if(!s)return;s.classList.remove('rain');void s.getBoundingClientRect();s.classList.add('rain');setTimeout(()=>s.classList.remove('rain'),1700);}
+function rain(){const s=document.querySelector('#treeSvg svg');if(!s)return;s.classList.remove('rain');void s.getBoundingClientRect();s.classList.add('rain');setTimeout(()=>s.classList.remove('rain'),3500);}
 function burst(){
   const s=document.querySelector('#treeSvg svg');if(!s)return;const NS='http://www.w3.org/2000/svg',g=document.createElementNS(NS,'g');
   for(let i=0;i<18;i++){const c=document.createElementNS(NS,'circle'),a=i/18*6.283,d=70+Math.random()*70;
     c.setAttribute('cx',150);c.setAttribute('cy',190);c.setAttribute('r',3+Math.random()*3);c.setAttribute('fill',i%3?'#8bd36a':'#ffd86b');
     c.style.setProperty('--dx',(Math.cos(a)*d)+'px');c.style.setProperty('--dy',(Math.sin(a)*d-20)+'px');c.style.animation='bu 1.4s ease-out forwards';g.appendChild(c);}
+  const rg=document.createElementNS(NS,'circle');rg.setAttribute('cx',150);rg.setAttribute('cy',190);rg.setAttribute('r',10);rg.setAttribute('fill','none');rg.setAttribute('stroke','#ffe9a0');rg.setAttribute('stroke-width',2);rg.style.transformBox='fill-box';rg.style.transformOrigin='center';rg.style.animation='ring 1.3s ease-out forwards';g.appendChild(rg);
   s.appendChild(g);setTimeout(()=>g.remove(),1500);
 }
 function renderGarden(){
